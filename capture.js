@@ -1,15 +1,16 @@
-'use strict'
-$(function() {
+window.onload = function() {
+  "use strict"
   const videoFrame = document.querySelector("video.camera-movie")
-  const photoFrame = document.querySelector("canvas.captured-image")
-  const videoOptionsSelector = "select.video-devices"
-  const captureButtonSelector = "a.capture-button"
-  const saveButtonSelector = "a.save-button"
+  const canvasFrame = document.querySelector("canvas.captured-frame")
+  const imageFrame = document.querySelector("img.captured-image")
+  const videoOptions = document.querySelector("select.video-devices")
+  const captureButton = document.querySelector("a.capture-button")
+  const saveButton = document.querySelector("a.save-button")
   const width = 640
   let height
 
   const setVideoFrame = () => {
-    const selectedDeviceId = $(videoOptionsSelector).find("option:selected").val()
+    const selectedDeviceId = videoOptions.options[videoOptions.selectedIndex].value
 
     if (!selectedDeviceId) { return }
 
@@ -40,29 +41,30 @@ $(function() {
   navigator.mediaDevices.enumerateDevices().then(devices => {
     devices.forEach(device => {
       if (device.kind == "videoinput") {
-        $("select.video-devices")
-          .append("<option value =\"" + device.deviceId + "\">" +
-                  device.deviceId +
-                  "</option>")
+        const optionNode = document.createElement('option')
+        optionNode.appendChild(document.createTextNode(device.deviceId))
+        optionNode.setAttribute('value', device.deviceId)
+
+        videoOptions.appendChild(optionNode)
       }
     })
     setVideoFrame()
   })
 
-  $(videoOptionsSelector).on('change', () => {
+  videoOptions.addEventListener('change', () => {
     setVideoFrame()
-  })
+  }, false)
 
-  $(captureButtonSelector).on('click', (e) => {
+  captureButton.addEventListener('click', (e) => {
     e.preventDefault()
-    const photoContext = photoFrame.getContext('2d')
-    photoFrame.width = width
-    photoFrame.height = height
+    const photoContext = canvasFrame.getContext('2d')
+    canvasFrame.width = width
+    canvasFrame.height = height
     photoContext.drawImage(videoFrame, 0, 0, width, height)
 
-    let image = photoFrame.toDataURL('image/png')
+    let image = canvasFrame.toDataURL('image/png')
     image = image.replace(/^data:application\/octet-stream/, 'data:application/octet-stream;headers=Content-Disposition%3A%20attachment%3B%20filename=Canvas.png');
-    $(saveButtonSelector).attr('href', image)
+    saveButton.setAttribute('href', image)
   })
 
-})
+}
